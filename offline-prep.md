@@ -286,6 +286,7 @@ vcf plugin install <plugin-name>
 | **VKS** | `projects.packages.broadcom.com/vsphere/supervisor/vks-service/...` | `Supervisor/VKS/` |
 | **LCI** | `projects.packages.broadcom.com/vsphere/supervisor/lci-service/...` | `Supervisor/LCI/` |
 | **Management Proxy** | Broadcom Support Portal 에서 확인 | - |
+| **ArgoCD** | Broadcom Support Portal 에서 확인 | - |
 
 #### Step 1. YAML에서 imgpkgBundle 이미지 주소 확인
 
