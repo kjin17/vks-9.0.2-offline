@@ -12,7 +12,7 @@
    - [1-1. Harbor VM (Bitnami) 배포 및 서비스 관리](#1-1-harbor-vm-bitnami--배포-및-서비스-관리)
    - [1-2. VKR — Local Content Library 구성](#1-2-vkr-vm-release--local-content-library-구성-air-gapped)
    - [1-3. VCF CLI Plugin Bundle 생성](#1-3-vcf-cli-plugin-bundle-생성-인터넷-환경에서-실행)
-   - [1-4. Supervisor Services 이미지 tar 추출](#1-4-supervisor-services-이미지-tar-추출-imgpkg-사용)
+   - [1-4. Supervisor Services 이미지 이전 (Private Registry 리로케이션)](#1-4-supervisor-services-이미지-이전-private-registry-리로케이션)
    - [1-5. Standard Packages 다운로드](#1-5-standard-packages-다운로드-public-registry--tarball)
    - [1-6. VKSm Extension 이미지 다운로드](#1-6-vksm-extension-이미지-다운로드)
 
@@ -203,25 +203,98 @@ vcf plugin download-bundle --to-tar /tmp/FILE-NAME.tar.gz
 
 ---
 
-### 1-4. Supervisor Services 이미지 tar 추출 (imgpkg 사용)
+### 1-4. Supervisor Services 이미지 이전 (Private Registry 리로케이션)
 
-> 각 Supervisor Service의 Packages 파일 내 `images:` 항목을 참고하여 이미지 repo 확인 후 pull
+> 📌 참고: [Relocate Supervisor Services to a Private Registry](https://techdocs.broadcom.com/us/en/vmware-cis/vsphere/vsphere-supervisor/8-0/vsphere-supervisor-services-and-workloads-8-0/deploying-supervisor-services-from-a-private-container-image-registry/relocate-supervisor-services-to-a-private-registry.html)
 
-```bash
-# Harbor
-imgpkg copy -b projects.packages.broadcom.com/vsphere/supervisor/harbor-service/2.14.2_vmware.2-vks.1 \
-  --to-tar=./harbor_v2.14.2.tar
+**Prerequisites:**
+- Carvel `imgpkg` 설치 완료
+- 대상 레지스트리(Harbor) 로그인 완료 (`docker login <harbor-fqdn>`)
+- 각 Supervisor Service의 YAML 파일 (`Supervisor/` 폴더 내 작성 파일 참고)
 
-# ArgoCD, Contour, VKS, Management Proxy도 동일 방식으로 추출
-# (각 패키지의 images: 항목에서 이미지 repo 주소 확인)
+> ⚠️ `imgpkg copy` 명령을 사용할 것. `push` / `pull` 은 참조 이미지 전체를 가져오지 않음.
+
+#### 다운로드 대상 Supervisor Services
+
+| 서비스 | Public Registry 이미지 예시 | 서비스 YAML 내 `imgpkgBundle.image` 값 확인 |
+|---------|------------------------|------|
+| **Harbor** | `projects.packages.broadcom.com/vsphere/supervisor/harbor-service/2.14.2_vmware.2-vks.1` | `Supervisor/Harbor/` |
+| **Contour** | `projects.registry.vmware.com/tkg/packages/standard/contour:v1.32.x_vmware.x-tkg.x` | `Supervisor/Contour/` |
+| **VKS** | `projects.packages.broadcom.com/vsphere/supervisor/vks-service/...` | `Supervisor/VKS/` |
+| **LCI** | `projects.packages.broadcom.com/vsphere/supervisor/lci-service/...` | `Supervisor/LCI/` |
+| **Management Proxy** | Broadcom Support Portal 에서 확인 | - |
+
+#### Step 1. YAML에서 imgpkgBundle 이미지 주소 확인
+
+```yaml
+# 서비스 YAML 예시 (Contour)
+template:
+  spec:
+    fetch:
+      - imgpkgBundle:
+          image: projects.registry.vmware.com/tkg/packages/standard/contour:v1.24.4_vmware.1-tkg.1
+          # ↑ 이 image 값을 복사해서 아래 imgpkg copy 명령에 사용
 ```
 
-**다운로드 대상 Supervisor Services:**
-- Harbor
-- ArgoCD
-- Contour
-- VKS
-- Management Proxy
+#### Step 2. Public Registry → Tarball 다운로드 (인터넷 환경)
+
+```bash
+# Contour 예시
+imgpkg copy \
+  -b projects.registry.vmware.com/tkg/packages/standard/contour:v1.24.4_vmware.1-tkg.1 \
+  --to-tar ./contour-v1.24.4.tar \
+  --cosign-signatures
+
+# Harbor 예시
+imgpkg copy \
+  -b projects.packages.broadcom.com/vsphere/supervisor/harbor-service/2.14.2_vmware.2-vks.1 \
+  --to-tar ./harbor_v2.14.2.tar \
+  --cosign-signatures
+
+# VKS, LCI, Management Proxy도 동일 방식
+# (YAML 내 imgpkgBundle.image 값 참고)
+```
+
+#### Step 3. Tarball → Private Harbor에 업로드 (Offline 환경)
+
+```bash
+# Harbor 로그인
+docker login <harbor-fqdn>
+
+# Contour 업로드
+imgpkg copy \
+  --tar ./contour-v1.24.4.tar \
+  --to-repo <harbor-fqdn>/supervisor-services/contour \
+  --cosign-signatures
+
+# Harbor 서비스 업로드
+imgpkg copy \
+  --tar ./harbor_v2.14.2.tar \
+  --to-repo <harbor-fqdn>/supervisor-services/harbor \
+  --cosign-signatures
+
+# 나머지 서비스도 동일 방식으로 업로드
+```
+
+#### Step 4. 서비스 YAML 내 image URL 수정
+
+```yaml
+# 변경 전 (Public Registry)
+template:
+  spec:
+    fetch:
+      - imgpkgBundle:
+          image: projects.registry.vmware.com/tkg/packages/standard/contour:v1.24.4_vmware.1-tkg.1
+
+# 변경 후 (Private Harbor)
+template:
+  spec:
+    fetch:
+      - imgpkgBundle:
+          image: <harbor-fqdn>/supervisor-services/contour:v1.24.4_vmware.1-tkg.1
+```
+
+> 💡 `Supervisor/` 폴더 내 YAML 파일들에서 `imgpkgBundle.image` 항목을 Private Harbor 주소로 하나씩 수정한 후 vCenter에서 Supervisor Service로 등록하면 됩니다.
 
 ---
 
