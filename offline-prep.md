@@ -11,7 +11,7 @@
 1. [사전 다운로드 목록](#1-사전-다운로드-목록)
    - [1-1. Harbor VM (Bitnami) 배포 및 서비스 관리](#1-1-harbor-vm-bitnami--배포-및-서비스-관리)
    - [1-2. VKR — Local Content Library 구성](#1-2-vkr-vm-release--local-content-library-구성-air-gapped)
-   - [1-3. VCF CLI Plugin Bundle 생성](#1-3-vcf-cli-plugin-bundle-생성-인터넷-환경에서-실행)
+   - [1-3. VCF CLI Plugin Bundle 다운로드 및 업로드](#1-3-vcf-cli-plugin-bundle-다운로드-및-업로드-offline-환경)
    - [1-4. Supervisor Services 이미지 이전 (Private Registry 리로케이션)](#1-4-supervisor-services-이미지-이전-private-registry-리로케이션)
    - [1-5. Standard Packages 다운로드](#1-5-standard-packages-다운로드-public-registry--tarball)
    - [1-6. VKSm Extension 이미지 다운로드](#1-6-vksm-extension-이미지-다운로드)
@@ -190,16 +190,79 @@ ob-XXXXXXXX-photon-3-k8s-v1.32.3---vmware.1-tkg.1.XXXXXXX
 
 ---
 
-### 1-3. VCF CLI Plugin Bundle 생성 (인터넷 환경에서 실행)
-
-```bash
-# Plugin Bundle을 tar로 내보내기
-vcf plugin download-bundle --to-tar /tmp/FILE-NAME.tar.gz
-```
+### 1-3. VCF CLI Plugin Bundle 다운로드 및 업로드 (Offline 환경)
 
 > 📌 참고:
 > - [VCF CLI 설치 (인터넷 연결)](https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0/building-your-cloud-applications/getting-started-with-the-tools-for-building-applications/installing-and-using-vcf-cli-v9/installing-the-vcf-cli-in-internet-connected-environments/install-the-vcf-cli(3)/install-vcf-cli-plugins.html)
 > - [VCF CLI 설치 (Offline)](https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0/building-your-cloud-applications/getting-started-with-the-tools-for-building-applications/installing-and-using-vcf-cli-v9/installing-the-vcf-cli-in-internet-restricted-environments(2).html)
+
+> ⚠️ Private Registry는 **인증 없이 pull 가능하도록** 설정해야 합니다 (Public 프로젝트).
+
+#### Step 1. VCF CLI 바이너리 설치 (인터넷 환경)
+
+```bash
+# VCF CLI 다운로드
+wget https://packages.broadcom.com/artifactory/vcf-distro/vcf-cli/vcf-cli_linux_amd64_9_0_2.tar.gz
+
+# 설치
+tar -xzf vcf-cli_linux_amd64_9_0_2.tar.gz
+install ./vcf /usr/local/bin/vcf
+vcf version
+```
+
+#### Step 2. Plugin Bundle 다운로드 (인터넷 환경)
+
+```bash
+# 웹 연결 환경에서 사용 가능한 Plugin Group/Plugin 목록 확인
+vcf plugin group search
+vcf plugin search
+
+# 옵션 A: 전체 Plugin Bundle 다운로드 (기본 Registry 전체)
+vcf plugin download-bundle --to-tar /tmp/vcf-plugins-all.tar.gz
+
+# 옵션 B: 특정 Plugin Group 최신으로 다운로드
+vcf plugin download-bundle \
+  --group vmware-vcfcli/essentials \
+  --to-tar /tmp/vcf-plugins-essentials.tar.gz
+
+# 옵션 C: 특정 Plugin Group 특정 버전으로 다운로드
+vcf plugin download-bundle \
+  --group vmware-vcfcli/essentials:v9.0.0 \
+  --to-tar /tmp/vcf-plugins-essentials-v9.0.0.tar.gz
+
+# 옵션 D: 여러 Plugin Group 버전 동시 다운로드
+vcf plugin download-bundle \
+  --group vcfcli/essentials:v4.0.0,vcfcli/essentials:v9.0.0 \
+  --to-tar /tmp/vcf-plugins-multi.tar.gz
+```
+
+#### Step 3. Offline 환경으로 반입 후 Private Harbor에 업로드
+
+```bash
+# Harbor 로그인
+docker login <harbor-fqdn>
+# 또는 VCF CLI 인증서 방식
+vcf config cert add --host <harbor-fqdn> --ca-certificate ./admin-ca.crt
+
+# Plugin Bundle을 Private Harbor에 업로드
+vcf plugin upload-bundle \
+  --tar /tmp/vcf-plugins-all.tar.gz \
+  --to-repo <harbor-fqdn>/vcf_cli/plugins
+```
+
+#### Step 4. CLI Plugin Source를 Private Harbor로 변경
+
+```bash
+# 기본 Plugin Source를 Private Harbor로 변경
+vcf plugin source update default \
+  --uri <harbor-fqdn>/vcf_cli/plugins/plugin-inventory:latest
+
+# 플러그인 캐시 초기화 후 목록 확인
+vcf plugin clean && vcf plugin list
+
+# 필요한 Plugin 설치
+vcf plugin install <plugin-name>
+```
 
 ---
 
