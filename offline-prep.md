@@ -25,7 +25,7 @@
 | 4 | **VCF CLI Plugin Bundle** | FILE-NAME.tar.gz | VCF plugin download 명령어로 다운로드 |
 | 5 | **kubectl** | 최신 stable | https://dl.k8s.io/release/stable.txt |
 | 6 | **VKR (VM Release) Images** | K8s 각 버전별 OVA | https://wp-content.vmware.com/v2/latest/ |
-| 7 | **VKS Addon Packages** | vks-standard-packages:3.5.0-YYYYMMDD.tar | Broadcom Support Portal |
+| 7 | **VKS Standard Packages** | vks-standard-packages:3.5.0-20251022.tar | `imgpkg copy` 명령으로 생성 (아래 참고)  |
 | 8 | **Supervisor Services Images** | 각 서비스별 tar | `imgpkg copy` 명령으로 생성 (아래 참고) |
 | 9 | **Carvel Tools** | imgpkg / kapp / kbld / kctrl / ytt | https://carvel.dev |
 | 10 | **VKSm Extension** | 확장 이미지 번들 | `download-extension.sh` 실행 |
