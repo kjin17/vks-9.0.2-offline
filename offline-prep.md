@@ -279,13 +279,20 @@ vcf plugin install <plugin-name>
 
 #### 다운로드 대상 Supervisor Services
 
-| 서비스 | Public Registry 이미지 예시 | 서비스 YAML 내 `imgpkgBundle.image` 값 확인 |
+| 서비스 | Public Registry 이미지 | 서비스 YAML 위치 |
 |---------|------------------------|------|
-| **Harbor** | `projects.packages.broadcom.com/vsphere/supervisor/harbor-service/2.14.2_vmware.2-vks.1` | `Supervisor/Harbor/` |
-| **Contour** | `projects.registry.vmware.com/tkg/packages/standard/contour:v1.32.x_vmware.x-tkg.x` | `Supervisor/Contour/` |
-| **VKS** | `projects.packages.broadcom.com/vsphere/supervisor/vks-service/...` | `Supervisor/VKS/` |
-| **LCI** | `projects.packages.broadcom.com/vsphere/supervisor/lci-service/...` | `Supervisor/LCI/` |
-| **Management Proxy** | Broadcom Support Portal 에서 확인 | - |
+| **Harbor** | `projects.packages.broadcom.com/vsphere/supervisor/harbor-service/2.14.2/harbor:v2.14.2_vmware.2-vks.1` | `Supervisor/Harbor/` |
+| **Contour** | `projects.packages.broadcom.com/vsphere/supervisor/contour/1.32.0/contour:v1.32.0_vmware.1-vks.1` | `Supervisor/Contour/` |
+| **VKS 3.5.0** | `projects.packages.broadcom.com/vsphere/iaas/tkg-service/3.5.0/tkg-service:3.5.0` | `Supervisor/VKS/3.5.0-package.yaml` |
+| **VKS 3.6.0** | `projects.packages.broadcom.com/vsphere/iaas/vsphere-kubernetes-service/3.6.0/vsphere-kubernetes-service:3.6.0` | `Supervisor/VKS/3.6.0-package.yaml` |
+| **VKS 3.6.2** | `projects.packages.broadcom.com/vsphere/iaas/vsphere-kubernetes-service/3.6.2/vsphere-kubernetes-service:3.6.2` | `Supervisor/VKS/vks-3.6.2+v1.35.yaml` |
+| **LCI** | `projects.packages.broadcom.com/vsphere/iaas/lci-service/9.0.2/lci-service:9.0.2-f943fb89` | `Supervisor/LCI/` |
+| **ArgoCD** | `projects.packages.broadcom.com/vsphere/supervisor/argocd-service/1.1.0/argocd-service:v1.1.0_vmware.1` | `Supervisor/ArgoCD/supervisor-service-argocd-legacy-*.yml` |
+| **Management Proxy 0.4.0** | `projects.packages.broadcom.com/vsphere/iaas/supervisor-management-proxy-service/0.4.0/supervisor-management-proxy-service:0.4.0` | `Supervisor/Management Proxy/` |
+| **Secret Store** | `projects.packages.broadcom.com/vsphere/iaas/secret-store-service/9.0.0/secret-store-service:v9.0.0-c3eabdc` | `Supervisor/secret store/` |
+
+> 💡 **Depot 방식 파일** (`depot.kube-system.svc/...`)은 FDS(Fleet Depot Service) 연결 환경 전용입니다.  
+> Air-Gapped 환경에서는 위 표의 `projects.packages.broadcom.com` 주소를 사용하는 **Legacy/Public Registry** 파일로 작업하세요.
 | **ArgoCD** | Broadcom Support Portal 에서 확인 | - |
 
 #### Step 1. YAML에서 imgpkgBundle 이미지 주소 확인
