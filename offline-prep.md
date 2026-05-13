@@ -22,7 +22,7 @@
 | 1 | **Harbor VM Template** | bitnami-harbor-2.14.2-r0-debian-12-amd64.ova | https://bitnami.com/stack/harbor/virtual-machine |
 | 2 | **Avi Controller** | 31.1.2-P21 | Broadcom Support Portal |
 | 3 | **VCF CLI** | vcf-cli_linux_amd64_9_0_2.tar.gz | https://packages.broadcom.com/artifactory/vcf-distro/vcf-cli/ |
-| 4 | **VCF CLI Plugin Bundle** | FILE-NAME.tar.gz | 아래 명령으로 생성 |
+| 4 | **VCF CLI Plugin Bundle** | FILE-NAME.tar.gz | VCF plugin download 명령어로 다운로드 |
 | 5 | **kubectl** | 최신 stable | https://dl.k8s.io/release/stable.txt |
 | 6 | **VKR (VM Release) Images** | K8s 각 버전별 OVA | https://wp-content.vmware.com/v2/latest/ |
 | 7 | **VKS Addon Packages** | vks-standard-packages:3.5.0-YYYYMMDD.tar | Broadcom Support Portal |
