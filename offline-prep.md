@@ -9,11 +9,12 @@
 ## 목차
 
 1. [사전 다운로드 목록](#1-사전-다운로드-목록)
-   - [1-1. VKR — Local Content Library 구성](#1-1-vkr-vm-release--local-content-library-구성-air-gapped)
-   - [1-2. VCF CLI Plugin Bundle 생성](#1-2-vcf-cli-plugin-bundle-생성-인터넷-환경에서-실행)
-   - [1-3. Supervisor Services 이미지 tar 추출](#1-3-supervisor-services-이미지-tar-추출-imgpkg-사용)
-   - [1-4. Standard Packages 다운로드](#1-4-standard-packages-다운로드-public-registry--tarball)
-   - [1-5. VKSm Extension 이미지 다운로드](#1-5-vksm-extension-이미지-다운로드)
+   - [1-1. Harbor VM (Bitnami) 배포 및 서비스 관리](#1-1-harbor-vm-bitnami--배포-및-서비스-관리)
+   - [1-2. VKR — Local Content Library 구성](#1-2-vkr-vm-release--local-content-library-구성-air-gapped)
+   - [1-3. VCF CLI Plugin Bundle 생성](#1-3-vcf-cli-plugin-bundle-생성-인터넷-환경에서-실행)
+   - [1-4. Supervisor Services 이미지 tar 추출](#1-4-supervisor-services-이미지-tar-추출-imgpkg-사용)
+   - [1-5. Standard Packages 다운로드](#1-5-standard-packages-다운로드-public-registry--tarball)
+   - [1-6. VKSm Extension 이미지 다운로드](#1-6-vksm-extension-이미지-다운로드)
 
 ---
 
@@ -42,7 +43,102 @@
 
 ---
 
-### 1-1. VKR (VM Release) — Local Content Library 구성 (Air-Gapped)
+### 1-1. Harbor VM (Bitnami) — 배포 및 서비스 관리
+
+> 📌 참고: [Bitnami Harbor VM — Start or Stop Services](https://docs.bitnami.com/virtual-machine/infrastructure/harbor/administration/control-services/)
+
+#### VM 사양 및 디스크 구성
+
+| 항목 | 값 |
+|------|----|
+| **OVA** | bitnami-harbor-2.14.2-r0-debian-12-amd64.ova |
+| **Disk 1** | 100GB (OS + Harbor 앱) |
+| **Disk 2** | 100GB (Registry Storage — 별도 마운트 필요) |
+| **기본 포트** | HTTP: 80 / HTTPS: 443 |
+| **기본 계정** | `admin` / 최초 부팅 시 콘솔에서 확인 |
+
+#### 서비스 제어 (`ctlscript.sh`)
+
+> Bitnami VM은 `/opt/bitnami/ctlscript.sh` 로 모든 서비스를 제어합니다.
+
+```bash
+# 전체 서비스 상태 확인
+sudo /opt/bitnami/ctlscript.sh status
+
+# 전체 서비스 시작
+sudo /opt/bitnami/ctlscript.sh start
+
+# 전체 서비스 중지
+sudo /opt/bitnami/ctlscript.sh stop
+
+# 전체 서비스 재시작
+sudo /opt/bitnami/ctlscript.sh restart
+
+# 개별 서비스 재시작 (nginx만)
+sudo /opt/bitnami/ctlscript.sh restart nginx
+```
+
+#### 주요 서비스 구성
+
+| 서비스 | 역할 |
+|--------|------|
+| `nginx` | Harbor 프론트엔드 프록시 (80/443) |
+| `harbor-core` | Harbor 핵심 API 서버 |
+| `harbor-jobservice` | 이미지 복제/스캔 작업 처리 |
+| `harbor-registry` | 컨테이너 이미지 스토리지 |
+| `postgresql` | Harbor 메타데이터 DB |
+| `redis` | Harbor 캐시/세션 |
+
+#### Registry Storage 마운트
+
+```bash
+# 2번째 디스크 파티션 생성
+sudo fdisk /dev/sdb   # n → p → 1 → default → default → w
+
+# 포맷 및 마운트
+sudo mkfs.ext4 /dev/sdb1
+sudo mount /dev/sdb1 /bitnami/harbor-registry/storage
+sudo chown harbor:harbor /bitnami/harbor-registry/storage
+
+# 재부팅 후 자동 마운트 (fstab 등록)
+echo "/dev/sdb1  /bitnami/harbor-registry/storage  ext4  defaults  0  2" \
+  | sudo tee -a /etc/fstab
+```
+
+#### SSH 활성화 (Bitnami 기본값: 비밀번호 인증 비활성화)
+
+```bash
+sudo sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sudo rm -f /etc/ssh/sshd_not_to_be_run
+sudo systemctl enable sshd && sudo systemctl restart sshd
+```
+
+#### TLS 인증서 교체 (Custom CA)
+
+```bash
+# nginx 인증서 경로
+/opt/bitnami/nginx/conf/bitnami/certs/server.key
+/opt/bitnami/nginx/conf/bitnami/certs/server.crt
+
+# 인증서 교체
+cat ./harbor.key > /opt/bitnami/nginx/conf/bitnami/certs/server.key
+cat ./harbor.crt > /opt/bitnami/nginx/conf/bitnami/certs/server.crt
+
+# nginx 재시작
+sudo /opt/bitnami/ctlscript.sh restart nginx
+```
+
+#### 로그 위치
+
+| 서비스 | 로그 경로 |
+|--------|----------|
+| nginx | `/opt/bitnami/nginx/logs/error.log` |
+| harbor-core | `/opt/bitnami/harbor/common/config/log/` |
+| postgresql | `/opt/bitnami/postgresql/logs/` |
+
+---
+
+### 1-2. VKR (VM Release) — Local Content Library 구성 (Air-Gapped)
 
 > 📌 참고: [Create a Local Content Library for Air-Gapped Cluster Provisioning](https://techdocs.broadcom.com/us/en/vmware-cis/vsphere/vsphere-supervisor/8-0/using-tkg-service-with-vsphere-supervisor/administering-kubernetes-releases-for-tkg-service-clusters/create-a-local-content-library-for-air-gapped-cluster-provisioning.html)
 
@@ -94,7 +190,7 @@ ob-XXXXXXXX-photon-3-k8s-v1.32.3---vmware.1-tkg.1.XXXXXXX
 
 ---
 
-### 1-2. VCF CLI Plugin Bundle 생성 (인터넷 환경에서 실행)
+### 1-3. VCF CLI Plugin Bundle 생성 (인터넷 환경에서 실행)
 
 ```bash
 # Plugin Bundle을 tar로 내보내기
@@ -107,7 +203,7 @@ vcf plugin download-bundle --to-tar /tmp/FILE-NAME.tar.gz
 
 ---
 
-### 1-3. Supervisor Services 이미지 tar 추출 (imgpkg 사용)
+### 1-4. Supervisor Services 이미지 tar 추출 (imgpkg 사용)
 
 > 각 Supervisor Service의 Packages 파일 내 `images:` 항목을 참고하여 이미지 repo 확인 후 pull
 
@@ -129,7 +225,7 @@ imgpkg copy -b projects.packages.broadcom.com/vsphere/supervisor/harbor-service/
 
 ---
 
-### 1-4. Standard Packages 다운로드 (Public Registry → Tarball)
+### 1-5. Standard Packages 다운로드 (Public Registry → Tarball)
 
 > 📌 참고: [Push Standard Packages to a Private Harbor Registry](https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-consumption/latest/managing-vsphere-kuberenetes-service-clusters-and-workloads/using-private-registries-with-tkg-service-clusters/push-standard-packages-to-a-private-harbor-registry.html)
 
@@ -181,7 +277,7 @@ docker pull <harbor-fqdn>/packages/vks-standard-packages@sha256:<digest>
 
 ---
 
-### 1-5. VKSm Extension 이미지 다운로드
+### 1-6. VKSm Extension 이미지 다운로드
 
 > **버전:** `9.0.2-0-25145732`  
 > **스크립트:** [`download-extensions.sh`](./download-extensions.sh)
