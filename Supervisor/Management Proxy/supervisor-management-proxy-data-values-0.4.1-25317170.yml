@@ -1,0 +1,14 @@
+# Configuration for Antrea-NSX Adapter
+# List of NSX Manager IPs
+nsxManagers:
+  - ""
+# Optional. If not defined, nsxSvcLoadBalancerIP will be allocated from the Supervisor's loadBalancer IP pool.
+# If it's defined, it should be in the range defined in the Supervisor's loadBalancer IP pool.
+# It is the proxyIP which is used by Antrea-NSX adapter in TKG workload cluster to reach NSX manager.
+nsxSvcLoadBalancerIP: ""
+# Optional. CPU requests for Supervisor Management Proxy Pod.
+# If not defined, 50m will be used as default cpu requests for Supervisor Management Proxy Pod.
+cpuRequests: "50m"
+# Optional. Memory requests for Supervisor Management Proxy Pod.
+# If not defined, 64Mi will be used as default memory requests for Supervisor Management Proxy Pod.
+memoryRequests: "64Mi"

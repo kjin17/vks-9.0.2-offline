@@ -30,9 +30,22 @@ vks-9.0.2-offline/
 │   │   └── contour-data-values-v1.32.yml                             # Contour Data Values
 │   ├── VKS/
 │   │   ├── 3.5.0-package.yaml                                        # VKS Service 패키지 (3.5.0)
-│   │   └── 3.6.0-package.yaml                                        # VKS Service 패키지 (3.6.0)
-│   └── LCI/
-│       └── lci-svs-9.0.2.yaml                                        # LCI Service 패키지
+│   │   ├── 3.6.0-package.yaml                                        # VKS Service 패키지 (3.6.0)
+│   │   ├── vks-3.6.1+v1.35.yaml                                      # VKS Service 패키지 (3.6.1 / k8s v1.35)
+│   │   └── vks-3.6.2+v1.35.yaml                                      # VKS Service 패키지 (3.6.2 / k8s v1.35)
+│   ├── LCI/
+│   │   └── lci-svs-9.0.2.yaml                                        # LCI Service 패키지
+│   ├── ArgoCD/
+│   │   ├── supervisor-service-argocd-depot-1.1.0-25100889.yml        # ArgoCD Service 패키지 (Depot)
+│   │   └── supervisor-service-argocd-legacy-1.1.0-25100889.yml       # ArgoCD Service 패키지 (Legacy)
+│   ├── Management Proxy/
+│   │   ├── supervisor-management-proxy-0.4.0.yml                     # Management Proxy 패키지 (0.4.0)
+│   │   ├── supervisor-management-proxy-0.4.1-25317170.yml            # Management Proxy 패키지 (0.4.1)
+│   │   ├── supervisor-management-proxy-data-values-0.4.0.yml         # Management Proxy Data Values (0.4.0)
+│   │   └── supervisor-management-proxy-data-values-0.4.1-25317170.yml # Management Proxy Data Values (0.4.1)
+│   └── secret store/
+│       ├── secret-store-service-definition.yml                        # Secret Store Service 패키지
+│       └── secret-store-data-values.yml                               # Secret Store Data Values
 │
 └── heath-check/                       # 일일 점검 스크립트
     ├── avi-hc.sh                      # NSX ALB (Avi) 상태 점검
@@ -159,8 +172,11 @@ vCenter Supervisor Services 등록 시 사용하는 패키지 YAML 및 Data Valu
 |--------|-------------|-------------|
 | **Harbor** | `Harbor/legacy-harbor-svs-v2.14.2+vmware.2-vks.1-25220498.yml` | `Harbor/Harborharbor-data-values-v2.14.2.yml` |
 | **Contour** | `Contour/contour-service-v1.32.0.yml` | `Contour/contour-data-values-v1.32.yml` |
-| **VKS** | `VKS/3.5.0-package.yaml` / `VKS/3.6.0-package.yaml` | - |
+| **VKS** | `VKS/3.5.0-package.yaml` / `VKS/3.6.0-package.yaml` / `VKS/vks-3.6.1+v1.35.yaml` / `VKS/vks-3.6.2+v1.35.yaml` | - |
 | **LCI** | `LCI/lci-svs-9.0.2.yaml` | - |
+| **ArgoCD** | `ArgoCD/supervisor-service-argocd-depot-1.1.0-25100889.yml` / `ArgoCD/supervisor-service-argocd-legacy-1.1.0-25100889.yml` | - |
+| **Management Proxy** | `Management Proxy/supervisor-management-proxy-0.4.0.yml` / `Management Proxy/supervisor-management-proxy-0.4.1-25317170.yml` | `Management Proxy/supervisor-management-proxy-data-values-0.4.0.yml` / `Management Proxy/supervisor-management-proxy-data-values-0.4.1-25317170.yml` |
+| **Secret Store** | `secret store/secret-store-service-definition.yml` | `secret store/secret-store-data-values.yml` |
 
 > 📌 Air-Gapped 환경에서는 각 YAML 내 `imgpkgBundle.image` 값을 Private Harbor 주소로 수정 후 등록합니다.  
 > 상세 절차: [`offline-prep.md` — 1-4 Supervisor Services 이미지 이전](./offline-prep.md#1-4-supervisor-services-이미지-이전-private-registry-리로케이션)
