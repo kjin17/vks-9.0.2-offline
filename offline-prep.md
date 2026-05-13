@@ -36,7 +36,7 @@
 | 10 | **VKSm Extension** | 확장 이미지 번들 | [`download-extensions.sh`](./download-extensions.sh) 실행 |
 | 11 | **Docker** | 최신 stable | https://docs.docker.com/engine/install/ |
 | 12 | **Helm** | (선택) | https://helm.sh/docs/intro/install/ |
-| 13 | **ArgoCD CLI** | 최신 stable | https://argo-cd.readthedocs.io |
+| 13 | **ArgoCD CLI** | 최신 stable | roadcom Support Portal  |
 | 14 | **Velero CLI** | 최신 stable | https://velero.io/docs/ |
 | 15 | **Keycloak** | (선택, OIDC 연동 시) | https://www.keycloak.org/downloads |
 | 16 | **Multi-Zonal Supervisor JSON** | (선택, Multi-Zone 구성 시) | enable-wcp.sh |
