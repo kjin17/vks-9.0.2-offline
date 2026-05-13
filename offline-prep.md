@@ -38,7 +38,11 @@
 
 ---
 
-### 1-1. VKR 지원 Kubernetes 버전 (VKS 3.5.0 기준)
+### 1-1. VKR (VM Release) — Local Content Library 구성 (Air-Gapped)
+
+> 📌 참고: [Create a Local Content Library for Air-Gapped Cluster Provisioning](https://techdocs.broadcom.com/us/en/vmware-cis/vsphere/vsphere-supervisor/8-0/using-tkg-service-with-vsphere-supervisor/administering-kubernetes-releases-for-tkg-service-clusters/create-a-local-content-library-for-air-gapped-cluster-provisioning.html)
+
+#### VKS 3.5.0 기준 지원 Kubernetes 버전
 
 | 채널 | 지원 버전 |
 |------|----------|
@@ -46,6 +50,43 @@
 | v1.32 | v1.32.0 / v1.32.3 / v1.32.7 |
 | v1.33 | v1.33.1 / v1.33.3 |
 | v1.34 | v1.34.1 / v1.34.2 |
+
+#### VKR OVA 다운로드
+
+각 버전별로 아래 4개 파일을 다운로드 (보안 정책 적용 시 4개 모두 필요):
+
+| 파일 | 설명 |
+|------|------|
+| `photon-ova.ovf` | OVF 디스크립터 |
+| `photon-ova-disk1.vmdk` | 디스크 이미지 |
+| `photon-ova.cert` | 서명 인증서 (보안 정책 적용 시 필수) |
+| `photon-ova.mf` | 매니페스트 (보안 정책 적용 시 필수) |
+
+```
+# 다운로드 URL
+https://wp-content.vmware.com/v2/latest/
+
+# 버전 디렉토리 예시
+ob-XXXXXXXX-photon-3-k8s-v1.32.3---vmware.1-tkg.1.XXXXXXX
+```
+
+#### Local Content Library 생성 절차
+
+1. vSphere Client → **Content Library → Create**
+2. 이름 입력 (예: `TKr-local`) → Next
+3. **Local content library** 선택 → Next
+4. 보안 정책: **Apply Security Policy → OVF default policy** 선택 → Next
+5. Storage 선택 → Finish
+
+#### VKR OVA 임포트
+
+1. 생성한 Content Library 선택
+2. **Actions → Import Item → Local File → Upload Files**
+3. `photon-ova.ovf` + `photon-ova-disk1.vmdk` 2개 파일 선택
+4. **Destination Item name** = 다운로드 폴더명과 **정확히 일치**시킬 것  
+   (예: `photon-3-k8s-v1.32.3---vmware.1-tkg.1.XXXXXXX`)  
+   > ⚠️ 이름 불일치 시 Supervisor가 TKG Release를 인식하지 못함
+5. Import → Recent Tasks에서 `Fetch Content of a Library Item` 완료 확인
 
 ---
 
