@@ -80,7 +80,59 @@ imgpkg copy -b projects.packages.broadcom.com/vsphere/supervisor/harbor-service/
 
 ---
 
-### 1-4. VKSm Extension 이미지 다운로드
+### 1-4. Standard Packages 다운로드 (Public Registry → Tarball)
+
+> 📌 참고: https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-consumption/latest/managing-vsphere-kuberenetes-service-clusters-and-workloads/using-private-registries-with-tkg-service-clusters/push-standard-packages-to-a-private-harbor-registry.html
+
+**Prerequisites:**
+- Carvel `imgpkg` 설치 완료
+- Docker 클라이언트 설치 및 Harbor CA 인증서 적용 완료
+- Harbor에 `packages` 프로젝트(Public) 생성 완료
+
+#### 방법 1: Tarball 경유 (Air-Gapped 권장)
+
+```bash
+# Step 1: Public Registry에서 tarball로 pull (인터넷 연결 환경에서 실행)
+imgpkg copy \
+  --bundle projects.packages.broadcom.com/vsphere/supervisor/packages/2025.1.7/vks-standard-packages:v2025.1.7 \
+  --to-tar ./vks-standard-packages-v2025.1.7.tar
+
+# Step 2: tarball을 Offline 환경으로 반입 후 Harbor에 push
+imgpkg copy \
+  --tar ./vks-standard-packages-v2025.1.7.tar \
+  --to-repo <harbor-fqdn>/packages/vks-standard-packages \
+  --registry-ca-cert-path ./admin-ca.crt
+```
+
+#### 방법 2: 직접 복사 (인터넷 ↔ Harbor 동시 접근 가능한 환경)
+
+```bash
+imgpkg copy \
+  -b projects.packages.broadcom.com/vsphere/supervisor/packages/2025.1.7/vks-standard-packages:v2025.1.7 \
+  --to-repo <harbor-fqdn>/packages/vks-standard-packages \
+  --registry-ca-cert-path ./admin-ca.crt
+```
+
+#### 업로드 검증
+
+```bash
+# 1. Package bundle을 로컬 폴더로 pull
+imgpkg pull \
+  -b <harbor-fqdn>/packages/vks-standard-packages:v2025.1.7 \
+  -o /tmp/vks-standard-packages
+
+# 2. 포함된 이미지 목록 확인
+cat /tmp/vks-standard-packages/.imgpkg/images.yml
+
+# 3. 개별 이미지 docker pull로 최종 확인
+docker pull <harbor-fqdn>/packages/vks-standard-packages@sha256:<digest>
+```
+
+> ⚠️ `--to-repo` 경로의 Harbor 프로젝트는 반드시 **Public** 으로 설정해야 Supervisor가 인증 없이 접근 가능합니다.
+
+---
+
+### 1-5. VKSm Extension 이미지 다운로드
 
 ```bash
 # download-extension.sh 실행 (경로 예시)
