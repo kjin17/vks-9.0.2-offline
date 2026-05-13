@@ -134,9 +134,18 @@ docker pull <harbor-fqdn>/packages/vks-standard-packages@sha256:<digest>
 
 ### 1-5. VKSm Extension 이미지 다운로드
 
+> **버전:** `9.0.2-0-25145732`  
+> **스크립트:** [`download-extensions.sh`](./download-extensions.sh)
+
 ```bash
-# download-extension.sh 실행 (경로 예시)
-./download-extension.sh /extensions/9.0.2-0-25145732/.../..:latest
+# download-extensions.sh 실행 (인터넷 연결 환경에서 실행)
+bash download-extensions.sh
+
+# 스크립트 내 주요 경로 예시 (버전: 9.0.2-0-25145732)
+# /extensions/9.0.2-0-25145732/agent-updater/agent-updater:latest
+# /extensions/9.0.2-0-25145732/extension-manager/extension-manager:latest
+# /extensions/9.0.2-0-25145732/gatekeeper:latest
+# ... 외 25개 extension 이미지
 ```
 
 > 📌 참고: https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-consumption/latest/managing-vks-clusters-with-vks-cluster-management/installation-and-enablement-of-vks-cluster-management/enabling-vks-cluster-management-in-an-airgapped-environment-without-fds.html
