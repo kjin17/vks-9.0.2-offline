@@ -20,6 +20,7 @@ vks-9.0.2-offline/
 │
 ├── download-extensions.sh             # VKSm Extension 이미지 다운로드 스크립트
 ├── upload-extensions.sh               # VKSm Extension 이미지 업로드 스크립트
+├── vcf_9_0_all_components_comprehensive_guide.md  # 디자인 결정사항 참고 모델
 │
 ├── Supervisor/                        # Supervisor Service 패키지 파일
 │   ├── Harbor/
