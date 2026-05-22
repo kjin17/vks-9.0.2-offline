@@ -64,6 +64,7 @@ vks-9.0.2-offline/
 |------|------|
 | [`offline-prep.md`](./offline-prep.md) | Offline 배포 전 사전 준비 — 컴포넌트별 다운로드 목록, Harbor VM 구성, VKR Content Library, VCF CLI Plugin, Supervisor Services 이미지 이전, Standard Packages, VKSm Extension 다운로드 절차 |
 | [`offline-install.md`](./offline-install.md) | 실제 설치 순서 — Bastion VM → Harbor → vCenter → Supervisor → VCF Context → Supervisor Services → VKSm Extension → VKS 클러스터 배포까지 STEP 1~14 상세 절차 |
+| [`vcf_9_0_all_components_comprehensive_guide.md`](./vcf_9_0_all_components_comprehensive_guide.md) | VCF 9.0+ 컴포넌트 아키텍처 모델 — 각 핵심 컴포넌트별 특장점(Benefits)과 고려사항(Implications)을 테이블 형태로 정리한 종합 디자인 참조 가이드 |
 
 ---
 
